@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { handleSignal, makeUpstashKv, makeMemoryKv } = require('../deploy/vercel/api/_core.js');
+const { handleSignal, handleIce, makeUpstashKv, makeMemoryKv } = require('../deploy/vercel/api/_core.js');
 
 const TOKEN = 'host-token-0123456789abcdef';
 const GID = 'guest-id-123456';
@@ -63,4 +63,19 @@ test('Upstash REST client sends one JSON command per POST with a bearer token', 
   } finally {
     globalThis.fetch = real;
   }
+});
+
+test('ice: no TURN configured returns null; configured returns relay servers; cross-site refused', async () => {
+  assert.deepEqual((await handleIce({}, null, '', 'x.app')).json, { turn: false, iceServers: null });
+  let seen;
+  const fakeFetch = async (url, opts) => { seen = { url, opts }; return { ok: true, json: async () => ({ iceServers: { urls: ['turn:turn.cloudflare.com:3478'], username: 'u', credential: 'c' } }) }; };
+  const env = { CF_TURN_KEY_ID: 'kid', CF_TURN_API_TOKEN: 'tok' };
+  const ok = await handleIce(env, fakeFetch, 'https://x.app', 'x.app');
+  assert.equal(ok.status, 200);
+  assert.equal(ok.json.turn, true);
+  assert.equal(ok.json.iceServers[0].username, 'u');
+  assert.match(seen.url, /keys\/kid\/credentials\/generate-ice-servers$/);
+  assert.equal(seen.opts.headers.Authorization, 'Bearer tok');
+  assert.equal((await handleIce(env, fakeFetch, 'https://evil.com', 'x.app')).status, 403);
+  assert.equal((await handleIce(env, async () => ({ ok: false }), '', 'x.app')).status, 502);
 });

@@ -4,10 +4,13 @@ export interface RuntimeConfig {
   signalUrl: string;
   /** WebRTC ICE servers. Add a TURN server here if players behind strict firewalls cannot connect. */
   iceServers: RTCIceServer[];
+  /** Endpoint that returns extra ICE servers (a TURN relay) when the site owner has configured one. */
+  iceUrl: string;
 }
 
 const DEFAULTS: RuntimeConfig = {
   signalUrl: '/api/signal',
+  iceUrl: '/api/ice',
   iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] }],
 };
 

@@ -4,7 +4,7 @@ import { runtimeConfig } from './config.ts';
 import { newId } from './profile.ts';
 
 const POLL_MS = 1000;
-const GATHER_TIMEOUT_MS = 4000;
+const GATHER_TIMEOUT_MS = 6000;
 const JOIN_TIMEOUT_MS = 25_000;
 const MAX_BUFFERED_BYTES = 256 * 1024;
 const FRAME_TIMEOUT_MS = 12_000;
@@ -46,6 +46,29 @@ export async function multiplayerAvailable(): Promise<{ ok: boolean; reason: str
 
 function token(): string {
   return newId() + newId().slice(0, 8);
+}
+
+let iceCache: { at: number; servers: RTCIceServer[] } | null = null;
+
+/** STUN from config.js plus a TURN relay from /api/ice when configured. Falls back to STUN only. */
+async function getIceServers(): Promise<RTCIceServer[]> {
+  const cfg = runtimeConfig();
+  if (iceCache && Date.now() - iceCache.at < 30 * 60_000) return iceCache.servers;
+  let servers = cfg.iceServers;
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 4000);
+    const res = await fetch(cfg.iceUrl, { cache: 'no-store', signal: ctl.signal });
+    clearTimeout(t);
+    if (res.ok) {
+      const j = (await res.json()) as { iceServers?: RTCIceServer[] | null };
+      if (Array.isArray(j.iceServers) && j.iceServers.length > 0) servers = [...cfg.iceServers, ...j.iceServers];
+    }
+  } catch {
+    /* no relay available; direct connections still work */
+  }
+  iceCache = { at: Date.now(), servers };
+  return servers;
 }
 
 async function gather(pc: RTCPeerConnection): Promise<void> {
@@ -127,7 +150,7 @@ export class HostPeers {
   }
 
   private async accept(gid: string, offerJson: string): Promise<void> {
-    const pc = new RTCPeerConnection({ iceServers: runtimeConfig().iceServers });
+    const pc = new RTCPeerConnection({ iceServers: await getIceServers() });
     this.pcs.add(pc);
     let link: GuestLink | null = null;
     pc.ondatachannel = (ev) => {
@@ -196,7 +219,7 @@ export interface GuestChannel {
 export async function dialRoom(codeInput: string, gid: string, onStatus: (text: string) => void): Promise<GuestChannel> {
   const code = normalizeRoomCode(codeInput);
   if (!isValidRoomCode(code)) throw new NetError('bad_code', 'A room code has 6 characters, using the digits 2 to 9 and the letters A to Z without I, L and O.');
-  const pc = new RTCPeerConnection({ iceServers: runtimeConfig().iceServers });
+  const pc = new RTCPeerConnection({ iceServers: await getIceServers() });
   const ch = pc.createDataChannel('rh', { ordered: true });
   const out: GuestChannel = { send: (f) => ch.readyState === 'open' && ch.send(f), close: () => { try { ch.close(); pc.close(); } catch { /* closed */ } }, onFrame: null, onClose: null };
   try {

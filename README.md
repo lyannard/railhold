@@ -49,7 +49,9 @@ Any static host works for solo play and the Range: Netlify, Cloudflare Pages, Gi
 - If a guest drops, reconnecting with the same browser returns them to their seat during a run.
 - Keep the host's tab open. If the host leaves, the match ends.
 
-Limits: ICE uses public STUN servers only (editable in `config.js`). Strict corporate or some mobile networks need a TURN relay, which is not included; add one to `config.js` if you have credentials. A room is held for 2 hours.
+TURN relay (optional, recommended): set `CF_TURN_KEY_ID` and `CF_TURN_API_TOKEN` in Vercel (Cloudflare Realtime TURN key) and redeploy. `/api/ice` then hands each player short-lived relay credentials, so strict networks can connect. `/api/health` shows `turn:true` when active.
+
+Limits: without TURN, ICE uses public STUN servers only (editable in `config.js`). Strict corporate or some mobile networks need a TURN relay, which is not included; add one to `config.js` if you have credentials. A room is held for 2 hours.
 
 ## 4. Test and rebuild
 

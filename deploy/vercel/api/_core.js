@@ -174,4 +174,29 @@ function makeMemoryKv(now) {
   };
 }
 
-module.exports = { handleSignal, makeUpstashKv, makeMemoryKv, ROOM_TTL_S };
+/**
+ * ICE (STUN/TURN) servers for WebRTC. When Cloudflare Realtime TURN is configured
+ * (CF_TURN_KEY_ID and CF_TURN_API_TOKEN), asks Cloudflare for short-lived relay credentials so
+ * players behind strict firewalls can still connect. Returns { status, json }.
+ */
+async function handleIce(env, fetchFn, origin, host) {
+  const keyId = env.CF_TURN_KEY_ID;
+  const token = env.CF_TURN_API_TOKEN;
+  if (!keyId || !token) return { status: 200, json: { turn: false, iceServers: null } };
+  if (origin) {
+    let oh = '';
+    try { oh = new URL(origin).host; } catch { /* invalid origin */ }
+    if (oh !== host) return { status: 403, json: { error: 'forbidden', message: 'Cross-site requests are not allowed.' } };
+  }
+  const res = await fetchFn('https://rtc.live.cloudflare.com/v1/turn/keys/' + encodeURIComponent(keyId) + '/credentials/generate-ice-servers', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ttl: 21600 }),
+  });
+  if (!res.ok) return { status: 502, json: { error: 'turn_error', message: 'The relay service did not answer.' } };
+  const j = await res.json();
+  const list = Array.isArray(j.iceServers) ? j.iceServers : j.iceServers ? [j.iceServers] : [];
+  return { status: 200, json: { turn: list.length > 0, iceServers: list } };
+}
+
+module.exports = { handleSignal, handleIce, makeUpstashKv, makeMemoryKv, ROOM_TTL_S };

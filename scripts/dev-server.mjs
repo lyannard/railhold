@@ -20,6 +20,11 @@ const server = createServer(async (req, res) => {
     res.end(JSON.stringify({ ok: true, multiplayer: true }));
     return;
   }
+  if (url.pathname === '/api/ice') {
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ turn: false, iceServers: null }));
+    return;
+  }
   if (url.pathname === '/api/signal') {
     if (req.method !== 'POST') {
       res.writeHead(405, { 'Content-Type': 'application/json' });
