@@ -3,6 +3,7 @@
   "framework": null,
   "buildCommand": "echo \"prebuilt site\"",
   "installCommand": "echo \"nothing to install\"",
+  "outputDirectory": ".",
   "cleanUrls": true,
   "headers": [
     {
