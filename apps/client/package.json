@@ -1,0 +1,14 @@
+{
+  "name": "@railhold/client",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --typeRoots /opt/npm-tools/node_modules/@types"
+  },
+  "dependencies": {
+    "@railhold/engine": "workspace:*",
+    "@railhold/physics": "workspace:*",
+    "@railhold/shared": "workspace:*"
+  }
+}

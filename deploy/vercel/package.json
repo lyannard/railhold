@@ -1,0 +1,8 @@
+{
+  "name": "railhold-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "Prebuilt Railhold site. Static files plus two small API functions. There is nothing to install or build.",
+  "engines": { "node": "22.x" }
+}

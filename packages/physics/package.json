@@ -1,0 +1,14 @@
+{
+  "name": "@railhold/physics",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Electromagnetic launcher and ballistics physics for Railhold. Zero runtime dependencies.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "node --test --test-reporter=spec \"test/*.test.ts\"",
+    "cli": "node cli/starters.ts",
+    "bench": "node bench/bench.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

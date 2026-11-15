@@ -1,0 +1,19 @@
+{
+  "name": "railhold",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Railhold: co-op tower defense built on real electromagnetic launcher physics.",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs 5173",
+    "build": "bun scripts/build.ts",
+    "test": "node --test \"packages/*/test/*.test.ts\" \"tests/*.test.cjs\"",
+    "e2e": "node scripts/e2e-full.cjs http://localhost:5173 ./shots",
+    "balance": "node scripts/balance.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

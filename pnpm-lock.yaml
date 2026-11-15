@@ -1,0 +1,38 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .: {}
+
+  apps/client:
+    dependencies:
+      '@railhold/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
+      '@railhold/physics':
+        specifier: workspace:*
+        version: link:../../packages/physics
+      '@railhold/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+
+  packages/engine:
+    dependencies:
+      '@railhold/physics':
+        specifier: workspace:*
+        version: link:../physics
+      '@railhold/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/physics: {}
+
+  packages/shared:
+    dependencies:
+      '@railhold/physics':
+        specifier: workspace:*
+        version: link:../physics

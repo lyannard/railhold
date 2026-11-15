@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "waves": [
+    { "number": 1, "label": "First contact", "spawns": [
+      { "type": "walker", "count": 6, "lane": "spread", "start_s": 0, "interval_s": 4 } ] },
+    { "number": 2, "label": "Column", "spawns": [
+      { "type": "walker", "count": 10, "lane": "spread", "start_s": 0, "interval_s": 3 } ] },
+    { "number": 3, "label": "Swarm", "spawns": [
+      { "type": "walker", "count": 6, "lane": "spread", "start_s": 0, "interval_s": 4 },
+      { "type": "swarm", "count": 12, "lane": "random", "start_s": 14, "interval_s": 0.6 } ] },
+    { "number": 4, "label": "Armor", "spawns": [
+      { "type": "plated", "count": 3, "lane": "spread", "start_s": 0, "interval_s": 8 },
+      { "type": "walker", "count": 8, "lane": "spread", "start_s": 4, "interval_s": 3 } ] },
+    { "number": 5, "label": "Magnetic screen", "spawns": [
+      { "type": "shield", "count": 2, "lane": "spread", "start_s": 0, "interval_s": 12 },
+      { "type": "walker", "count": 8, "lane": "spread", "start_s": 2, "interval_s": 3 } ] },
+    { "number": 6, "label": "Interference", "spawns": [
+      { "type": "jammer", "count": 2, "lane": "spread", "start_s": 0, "interval_s": 14 },
+      { "type": "swarm", "count": 16, "lane": "random", "start_s": 10, "interval_s": 0.5 },
+      { "type": "walker", "count": 6, "lane": "spread", "start_s": 6, "interval_s": 4 } ] },
+    { "number": 7, "label": "Heavy column", "spawns": [
+      { "type": "plated", "count": 6, "lane": "spread", "start_s": 0, "interval_s": 7 },
+      { "type": "shield", "count": 2, "lane": "spread", "start_s": 10, "interval_s": 12 } ] },
+    { "number": 8, "label": "Jammed screen", "spawns": [
+      { "type": "jammer", "count": 3, "lane": "spread", "start_s": 0, "interval_s": 10 },
+      { "type": "shield", "count": 3, "lane": "spread", "start_s": 4, "interval_s": 10 },
+      { "type": "swarm", "count": 20, "lane": "random", "start_s": 16, "interval_s": 0.4 } ] },
+    { "number": 9, "label": "Combined arms", "spawns": [
+      { "type": "plated", "count": 6, "lane": "spread", "start_s": 0, "interval_s": 6 },
+      { "type": "jammer", "count": 3, "lane": "spread", "start_s": 6, "interval_s": 10 },
+      { "type": "swarm", "count": 24, "lane": "random", "start_s": 12, "interval_s": 0.4 },
+      { "type": "walker", "count": 12, "lane": "spread", "start_s": 2, "interval_s": 3 } ] },
+    { "number": 10, "label": "Final assault", "spawns": [
+      { "type": "plated", "count": 9, "lane": "spread", "start_s": 0, "interval_s": 5 },
+      { "type": "shield", "count": 4, "lane": "spread", "start_s": 8, "interval_s": 8 },
+      { "type": "jammer", "count": 4, "lane": "spread", "start_s": 4, "interval_s": 9 },
+      { "type": "swarm", "count": 30, "lane": "random", "start_s": 20, "interval_s": 0.35 },
+      { "type": "walker", "count": 14, "lane": "spread", "start_s": 0, "interval_s": 3 } ] }
+  ]
+}
