@@ -351,7 +351,7 @@ export async function mountRange(root: HTMLElement, ctx: AppCtx, blueprintId: st
     h('div', { class: 'body', style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--s2);align-items:end' },
       h('div', { class: 'field' }, h('label', null, 'Elevation'), h('div', { class: 'row' }, elInput, elNum, h('span', { class: 'unit' }, 'mrad'))),
       h('div', { class: 'field' }, h('label', null, 'Charge target'), h('div', { class: 'row' }, chInput, chOut)),
-      h('div', { class: 'cluster' }, fireBtn, h('span', { class: 'hint' }, 'or press ', h('span', { class: 'kbd' }, fireKey())), h('button', { class: 'btn', type: 'button', onclick: () => ctx.go({ name: 'editor', id: blueprintId, back: { name: 'range', id: blueprintId } }) }, 'Edit launcher')),
+      h('div', { class: 'cluster' }, fireBtn, h('span', { class: 'hint kbdhint' }, 'or press ', h('span', { class: 'kbd' }, fireKey())), h('button', { class: 'btn', type: 'button', onclick: () => ctx.go({ name: 'editor', id: blueprintId, back: { name: 'range', id: blueprintId } }) }, 'Edit launcher')),
     ), msg);
   const instruments = h('details', { class: 'adv', style: 'grid-column:auto' },
     h('summary', null, 'Instruments'),
@@ -378,7 +378,7 @@ export async function mountRange(root: HTMLElement, ctx: AppCtx, blueprintId: st
       },
       steps: [
         { title: 'Welcome to the practice range', text: 'Your launcher throws a metal slug at target boards. Learn three things here: charge, aim and speed. It takes about a minute.' },
-        { target: '[data-coach=controls]', title: '1. Charge, then fire', text: 'Your launcher stores energy in capacitors. Wait until the Charge bar is full, then press Fire (or the key shown). A recharge takes a couple of seconds.' },
+        { target: '[data-coach=controls]', title: '1. Charge, then fire', text: 'Your launcher stores energy in capacitors. Wait until the Charge bar is full, then press Fire (or the key shown on a keyboard). A recharge takes a couple of seconds.' },
         { target: '[data-coach=controls]', title: '2. Aim with elevation', text: 'Gravity pulls the slug down. Raise Elevation a little to reach the far boards. Try 6 to 12 mrad and watch the line on the graph.' },
         { target: '.range-aside', title: '3. Read the result', text: 'Each shot reports speed and where it crossed every board. Faster slugs fly flatter and hit harder. Open Instruments to see the current pulse.' },
         { target: '[data-coach=controls] .btn:not(.primary):not(.armed)', title: 'Make it stronger', text: 'Edit launcher lets you change parts and buy upgrades in the Shop, right there. You can also do it between waves in a real match.' },

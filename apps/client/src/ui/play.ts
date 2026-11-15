@@ -108,6 +108,30 @@ export function mountPlay(root: HTMLElement, ctx: AppCtx, session: Session, init
   const overlay = h('div');
   const toast = h('div');
   stage.append(topCenter, topLeft, topRight, consoleEl, overlay, toast);
+
+  // Left and right HUD blocks are built once and updated in place. Rebuilding them on every snapshot
+  // (20 times a second) swallowed taps on small touch buttons.
+  const compactMq = window.matchMedia('(max-width: 700px), (max-height: 520px)');
+  let teamOpen = !compactMq.matches;
+  const scoreVal = h('span', { class: 'readout', style: 'font-size:var(--t-1)' }, '0');
+  const killsPill = h('div', { class: 'pill hint num kills-pill' }, '');
+  topLeft.append(h('div', { class: 'hud-left' },
+    h('button', { class: 'btn small', type: 'button', onclick: () => confirmLeave() }, icon('cross', 12), 'Leave'),
+    h('div', { class: 'pill' }, h('span', { class: 'hint' }, 'Score'), scoreVal),
+    killsPill));
+  const teamHeadText = h('span', { class: 'num hint' }, '');
+  const teamBuf = segBar(14);
+  const teamBat = h('div', { class: 'hint team-bat' }, '');
+  const teamRows = h('div', { class: 'team-rows' });
+  const teamHead = h('button', { class: 'teamhead', type: 'button', 'aria-expanded': String(teamOpen), onclick: () => { teamOpen = !teamOpen; syncTeam(); } },
+    h('strong', null, 'Team power'), teamHeadText, h('span', { class: 'chev', 'aria-hidden': 'true' }));
+  const teamPlate = h('div', { class: 'plate hudplate team' }, teamHead, teamBuf.el, teamBat, teamRows);
+  topRight.append(teamPlate);
+  function syncTeam(): void {
+    teamPlate.classList.toggle('collapsed', !teamOpen);
+    teamHead.setAttribute('aria-expanded', String(teamOpen));
+  }
+  syncTeam();
   root.append(h('div', { class: 'screen' }, stage));
 
   // console widgets
@@ -147,7 +171,7 @@ export function mountPlay(root: HTMLElement, ctx: AppCtx, session: Session, init
       h('div', null, h('div', { class: 'lab' }, h('span', null, 'Charge'), chargeText), chargeBar.el),
       h('div', null, h('div', { class: 'lab' }, h('span', null, 'Heat')), heatBar.el)),
     fireBtn,
-    h('div', { class: 'hint', style: 'text-align:center' }, 'Click the field or press ', h('span', { class: 'kbd' }, ctx.profile.data.settings.fireKey), ' to fire. ', h('span', { class: 'kbd' }, 'L'), ' lead assist. Wheel zooms.'),
+    h('div', { class: 'hint kbdhint', style: 'text-align:center' }, 'Click the field or press ', h('span', { class: 'kbd' }, ctx.profile.data.settings.fireKey), ' to fire. ', h('span', { class: 'kbd' }, 'L'), ' lead assist. Wheel zooms.'),
     msgLine));
   stage.append(firepad);
 
@@ -383,12 +407,9 @@ export function mountPlay(root: HTMLElement, ctx: AppCtx, session: Session, init
         hp.el,
         h('div', { class: 'hint num', style: 'margin-top:6px' }, timer)));
     }
-    clear(topLeft);
-    topLeft.append(h('div', { class: 'stack tight', style: 'justify-items:start' },
-      h('button', { class: 'btn small', type: 'button', onclick: () => confirmLeave() }, icon('cross', 12), 'Leave'),
-      h('div', { class: 'pill' }, h('span', { class: 'hint' }, 'Score'), h('span', { class: 'readout', style: 'font-size:var(--t-1)' }, String(s.score))),
-      m ? h('div', { class: 'pill hint num' }, `${m.stats.kills} kills · ${m.stats.shots} shots`) : null));
-    clear(topRight);
+    scoreVal.textContent = String(s.score);
+    killsPill.textContent = m ? `${m.stats.kills} kills · ${m.stats.shots} shots` : '';
+    killsPill.hidden = !m;
     const rows = s.players.map((p) => {
       const warn = p.jammed ? 'Jammed' : p.disabled ? 'Disabled' : !p.heat.canFire ? 'Too hot' : p.charge.brownout ? 'Low power' : '';
       return h('div', { class: 'seatchip' },
@@ -396,13 +417,10 @@ export function mountPlay(root: HTMLElement, ctx: AppCtx, session: Session, init
         h('span', null, `${p.name}${p.id === session.myId ? ' (you)' : ''}`),
         !p.connected ? status('fault', 'Offline') : warn ? status('fault', warn) : status(p.charge.ready ? 'on' : 'off', p.charge.ready ? 'Ready' : `${Math.round(p.charge.voltage_fraction * 100)}%`));
     });
-    const gBuf = segBar(14);
-    gBuf.set(s.grid.alloc_W / Math.max(1, s.grid.gen_W), s.grid.alloc_W > s.grid.gen_W ? 'bad' : 'on');
-    topRight.append(h('div', { class: 'plate hudplate', style: 'min-width:250px' },
-      h('div', { class: 'spread' }, h('strong', null, 'Team power'), h('span', { class: 'num hint' }, `${eng(s.grid.alloc_W, 'W', 3)} of ${eng(s.grid.gen_W, 'W', 3)}`)),
-      gBuf.el,
-      h('div', { class: 'hint', style: 'margin:4px 0 6px' }, `Battery ${eng(s.grid.buffer_J, 'J', 3)}${s.grid.bufferFlow_W > 1 ? ', draining' : s.grid.bufferFlow_W < -1 ? ', filling' : ''}`),
-      ...rows));
+    teamBuf.set(s.grid.alloc_W / Math.max(1, s.grid.gen_W), s.grid.alloc_W > s.grid.gen_W ? 'bad' : 'on');
+    teamHeadText.textContent = `${eng(s.grid.alloc_W, 'W', 3)} of ${eng(s.grid.gen_W, 'W', 3)}`;
+    teamBat.textContent = `Battery ${eng(s.grid.buffer_J, 'J', 3)}${s.grid.bufferFlow_W > 1 ? ', draining' : s.grid.bufferFlow_W < -1 ? ', filling' : ''}`;
+    teamRows.replaceChildren(...rows);
     if (m) {
       vMeter.set(m.charge.voltage_fraction, pct(m.charge.voltage_fraction, 0));
       tMeter.set(m.heat.hottest_K, `${m.heat.hottest_K.toFixed(0)} K`, !m.heat.canFire);
@@ -414,6 +432,7 @@ export function mountPlay(root: HTMLElement, ctx: AppCtx, session: Session, init
       const live = s.phase === 'defense' || s.phase === 'charge';
       firepad.hidden = !live;
       consoleEl.hidden = !live;
+      stage.classList.toggle('has-pad', live);
       const blocked = m.disabled ? 'Launcher disabled' : m.jammed ? 'Jammed' : !m.heat.canFire ? 'Too hot' : '';
       const armed = m.charge.ready && !blocked && live;
       fireBtn.className = `btn big ${armed ? 'armed' : 'primary'}`;
@@ -519,7 +538,7 @@ export function mountPlay(root: HTMLElement, ctx: AppCtx, session: Session, init
       codeBlock,
       seatList(s),
       loadoutPicker(s),
-      h('div', { class: 'cluster' },
+      h('div', { class: 'cluster actionbar' },
         solo ? null : h('button', { class: m?.ready ? 'btn armed' : 'btn', type: 'button', disabled: !m?.hasLoadout, onclick: () => session.send({ t: 'ready', value: !m?.ready }) }, m?.ready ? 'Ready. Click to cancel' : 'Mark ready'),
         isHost ? h('button', { class: 'btn primary', type: 'button', disabled: !(solo ? m?.hasLoadout : everyoneReady), onclick: () => session.send({ t: 'start' }) }, 'Start the match') : h('span', { class: 'hint' }, 'The host starts the match.'),
         h('button', { class: 'btn quiet', type: 'button', onclick: () => ctx.go({ name: 'menu' }) }, 'Leave')),
@@ -581,12 +600,12 @@ export function mountPlay(root: HTMLElement, ctx: AppCtx, session: Session, init
 
   function buildPanel(s: Snapshot): HTMLElement {
     const m = s.players.find((p) => p.id === session.myId);
-    return h('div', { class: 'hud', style: 'top:50%;left:50%;transform:translate(-50%,-50%)' }, h('div', { class: 'plate', style: 'width:min(460px,92vw)' }, h('div', { class: 'body stack' },
+    return h('div', { class: 'hud', style: 'top:50%;left:50%;transform:translate(-50%,-50%)' }, h('div', { class: 'plate sheetfit', style: 'width:min(460px,92vw)' }, h('div', { class: 'body stack' },
       h('h2', null, `Build phase, wave ${s.wave}`),
       h('p', { class: 'hint' }, `Wave ${s.wave} is next. Your launcher can cost up to ${(GAME.BUILD_BUDGET + GAME.BUILD_BUDGET_PER_WAVE * (s.wave - 1)).toLocaleString()} credits. Repairs are free. Spend your credits on a better launcher, then press Ready.`),
       seatList(s),
       loadoutPicker(s),
-      h('div', { class: 'cluster' },
+      h('div', { class: 'cluster actionbar' },
         h('button', { class: m?.ready ? 'btn armed' : 'btn primary', type: 'button', disabled: !m?.hasLoadout, onclick: () => session.send({ t: 'ready', value: !m?.ready }) }, m?.ready ? 'Ready. Click to cancel' : 'Ready for the wave'),
         h('span', { class: 'hint num' }, s.phaseLength_s > 0 ? `${Math.ceil(s.phaseLeft_s)} s left` : 'No time limit')))));
   }
